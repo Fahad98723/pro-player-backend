@@ -246,11 +246,11 @@ async function run() {
     const id = req.params.id;
     const filter = { _id: ObjectId(id) };
     const data = req.body;
-    console.log(data);
-    const likes = { likes: data.likes }
+    const likes = { likes: data?.likes,
+      likers : data?.likers }
     console.log(likes);
     const updateDoc = { $set: likes };
-    console.log(updateDoc);
+    // console.log(updateDoc);
     const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
     res.json(updatedPost);
   })
