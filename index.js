@@ -53,6 +53,7 @@ async function run() {
     const usersCollection = database.collection("users");
     const userHelpCollection = database.collection("userHelp");
 
+
     /*::::::::::::::::::::::::::::::::::::::::: 
     access blogs collection including pagination
     :::::::::::::::::::::::::::::::::::::::::::*/
@@ -251,6 +252,18 @@ async function run() {
     console.log(likes);
     const updateDoc = { $set: likes };
     // console.log(updateDoc);
+    const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
+    res.json(updatedPost);
+  })
+
+  app.put("/blogs/views/:id", async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: ObjectId(id) };
+    const data = req.body;
+    console.log(data);
+    const views = { views: data.views, viewers : data.viewers }
+    const updateDoc = { $set: views };
+    console.log(updateDoc);
     const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
     res.json(updatedPost);
   })
