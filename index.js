@@ -223,6 +223,21 @@ async function run() {
       const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
       res.json(updatedPost);
     });
+    /*::::: payment intent from stripe::::::::: */
+    app.post("/create-payment-intent", async (req, res) => {
+      const paymentInfo = req.body;
+      // console.log(paymentInfo.amount * 100);
+      const amount = paymentInfo.amount * 100;
+      console.log(amount);
+      if (amount > 1) {
+        const paymentIntent = await stripe.paymentIntents.create({
+          currency: "usd",
+          amount: amount,
+          payment_method_types: ["card"],
+        });
+        res.json({ clientSecret: paymentIntent.client_secret });
+      }
+    });
 
     /*:::: post payment info :::::::: */
     app.put("/blogs/payment/:id", async (req, res) => {
@@ -269,21 +284,6 @@ async function run() {
       res.json(updatedPost);
     });
 
-    /*::::: payment intent from stripe::::::::: */
-    app.post("/create-payment-intent", async (req, res) => {
-      const paymentInfo = req.body;
-      // console.log(paymentInfo.amount * 100);
-      const amount = paymentInfo.amount * 100;
-      console.log(amount);
-      if (amount > 1) {
-        const paymentIntent = await stripe.paymentIntents.create({
-          currency: "usd",
-          amount: amount,
-          payment_method_types: ["card"],
-        });
-        res.json({ clientSecret: paymentIntent.client_secret });
-      }
-    });
     // Please write down codes with commenting as like as top get request...
     // to start this server follow this command (you must install nodemon globally in your computer before running command)
     // npm run start-dev
