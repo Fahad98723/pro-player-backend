@@ -10,6 +10,7 @@ const admin = require("firebase-admin");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 var cors = require("cors");
 const { json } = require("body-parser");
@@ -75,7 +76,7 @@ async function run() {
         blogs,
       });
     });
-    
+
     app.post("/blogs", async (req, res) => {
       const data = req.body;
       console.log(data);
@@ -102,39 +103,37 @@ async function run() {
       res.send(users);
     });
 
-
     /* :::::::::::::::::::::::::::::::::::::
     put User  channel
     :::::::::::::::::::::::::::::::::::::::*/
-    app.put('/users/:id', async (req, res) => {
-      const id = req.params.id
+    app.put("/users/:id", async (req, res) => {
+      const id = req.params.id;
       console.log(id);
-      const data = req.body
-      const query = {_id : ObjectId(id)}
-      const option = {upsert : true}
+      const data = req.body;
+      const query = { _id: ObjectId(id) };
+      const option = { upsert: true };
       const updateDoc = {
-          $set : {
-            thumb : data.thumb, 
-            title : data.title,
-            totalHotel : data.totalHotel,
-            avgPrice : data.avgPrice ,
-            descAbout : data.descAbout,
-            desc1 : data.desc1, 
-            visitPlace : data.visitPlace, 
-            image1 : data.image1, 
-            image2 : data.image2, 
-            image3 : data.image3,
-            rating : data.rating,
-            day : data.day,
-            Latitude : data.Latitude,
-            longitude : data.longitude,
-            status : data.status
-          }
-      }
-      const result = await blogsCollection.updateOne(query, updateDoc, option)
-      res.json(result)
-  })
-
+        $set: {
+          thumb: data.thumb,
+          title: data.title,
+          totalHotel: data.totalHotel,
+          avgPrice: data.avgPrice,
+          descAbout: data.descAbout,
+          desc1: data.desc1,
+          visitPlace: data.visitPlace,
+          image1: data.image1,
+          image2: data.image2,
+          image3: data.image3,
+          rating: data.rating,
+          day: data.day,
+          Latitude: data.Latitude,
+          longitude: data.longitude,
+          status: data.status,
+        },
+      };
+      const result = await blogsCollection.updateOne(query, updateDoc, option);
+      res.json(result);
+    });
 
     //   app.get('/users/:email', async (req, res) => {
     //     const email = req.params.email;
@@ -147,19 +146,18 @@ async function run() {
     //     res.json({ admin: isAdmin });
     // })
 
-      app.get('/users/:email', async (req, res) => {
-        const email = req.params.email
-        const query =  {email :  email}
-        const user = await usersCollection.findOne(query)
-        let isAdmin = false
-        if (user?.role === 'admin') {
-            isAdmin = true
-        }
-        else{
-            isAdmin = false
-        }
-        res.send({admin : isAdmin})
-    })
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let isAdmin = false;
+      if (user?.role === "admin") {
+        isAdmin = true;
+      } else {
+        isAdmin = false;
+      }
+      res.send({ admin: isAdmin });
+    });
 
     // Make Admin jwt token
     app.get("/users/admin", verifyToken, async (req, res) => {
@@ -181,8 +179,6 @@ async function run() {
       }
     });
 
-
-
     //if your data already had saved in the database then we don't want save it again
     app.put("/users", async (req, res) => {
       const data = req.body;
@@ -195,9 +191,6 @@ async function run() {
       res.json(user);
     });
 
-
-
-
     /* :::::::::::::::::::::::::::::::::::::
     Post User Help Message
     :::::::::::::::::::::::::::::::::::::::*/
@@ -207,8 +200,6 @@ async function run() {
       const userHelp = await userHelpCollection.insertOne(data);
       res.json(userHelp);
     });
-
-
 
     /* :::::::::::::::::::::::::::::::::::::
     Load User Help Message
@@ -226,36 +217,71 @@ async function run() {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const data = req.body;
-      const comment = { comment: data }
+      const comment = { comment: data };
       const updateDoc = { $set: comment };
       console.log(updateDoc);
       const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
       res.json(updatedPost);
-    })
+    });
+
+    /*:::: post payment info :::::::: */
+    app.put("/blogs/payment/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const payment = req.body;
+      const option = { upsert: true };
+      console.log(payment);
+      const updatePaymet = {
+        $push: {
+          payment: {
+            $each: [{ _id: ObjectId(), ...payment }],
+            $sort: -1,
+          },
+        },
+      };
+
+      const result = await blogsCollection.updateOne(
+        filter,
+        updatePaymet,
+        option
+      );
+      res.json(result);
+    });
 
     //Get SIngle Blog
-    app.get('/blogs/:id', async (req, res) => {
+    app.get("/blogs/:id", async (req, res) => {
       const id = req.params;
-      const query = { _id: ObjectId(id) }
+      const query = { _id: ObjectId(id) };
       const result = await blogsCollection.findOne(query);
       res.json(result);
-  });
+    });
 
-  //sending likes array of object
-  app.put("/blogs/likes/:id", async (req, res) => {
-    const id = req.params.id;
-    const filter = { _id: ObjectId(id) };
-    const data = req.body;
-    const likes = { likes: data?.likes,
-      likers : data?.likers }
-    console.log(likes);
-    const updateDoc = { $set: likes };
-    // console.log(updateDoc);
-    const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
-    res.json(updatedPost);
-  })
+    //sending likes array of object
+    app.put("/blogs/likes/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const data = req.body;
+      const likes = { likes: data?.likes, likers: data?.likers };
+      console.log(likes);
+      const updateDoc = { $set: likes };
+      // console.log(updateDoc);
+      const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
+      res.json(updatedPost);
+    });
 
-
+    /*::::: payment intent from stripe::::::::: */
+    app.post("/create-payment-intent", async (req, res) => {
+      const paymentInfo = req.body;
+      // console.log(paymentInfo.amount * 100);
+      const amount = paymentInfo.amount * 100;
+      console.log(amount);
+      const paymentIntent = await stripe.paymentIntents.create({
+        currency: "usd",
+        amount: amount,
+        payment_method_types: ["card"],
+      });
+      res.json({ clientSecret: paymentIntent.client_secret });
+    });
     // Please write down codes with commenting as like as top get request...
     // to start this server follow this command (you must install nodemon globally in your computer before running command)
     // npm run start-dev
@@ -265,7 +291,7 @@ async function run() {
 }
 run().catch(console.dir);
 
-app.use('/auth', authRoutes);
+app.use("/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Pro player server is running now!");
