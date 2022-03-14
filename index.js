@@ -58,7 +58,12 @@ async function run() {
     access blogs collection including pagination
     :::::::::::::::::::::::::::::::::::::::::::*/
     app.get("/blogs", async (req, res) => {
-      const cursor = blogsCollection.find({});
+      let query = {}
+      const email = req.query.email;
+      if (email) {
+        query = {bloggerEmail : email}
+      }
+      const cursor = blogsCollection.find(query);
       const page = req.query.page;
       const size = parseInt(req.query.size);
       const count = await cursor.count();
@@ -281,6 +286,14 @@ async function run() {
     const createRoom = await usersCollection.updateOne(filter, updateDoc);
     res.json(createRoom);
   })
+
+
+  app.get('/users/room/:email', async (req, res) => {
+    const email = req.params.email
+    const query =  {email :  email}
+    const user = await usersCollection.findOne(query)
+    res.send(user)
+})
 
 
     // Please write down codes with commenting as like as top get request...
