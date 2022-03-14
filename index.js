@@ -269,6 +269,20 @@ async function run() {
   })
 
 
+  app.put("/users/room/:email", async (req, res) => {
+    const email = req.params.email;
+    console.log(email);
+    const filter = { email: email };
+    const data = req.body;
+    console.log(data);
+    const room = { room: data }
+    const updateDoc = { $set: room };
+    // console.log(updateDoc);
+    const createRoom = await usersCollection.updateOne(filter, updateDoc);
+    res.json(createRoom);
+  })
+
+
     // Please write down codes with commenting as like as top get request...
     // to start this server follow this command (you must install nodemon globally in your computer before running command)
     // npm run start-dev
