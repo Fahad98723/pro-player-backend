@@ -10,6 +10,7 @@ const admin = require("firebase-admin");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 var cors = require("cors");
 const { json } = require("body-parser");
@@ -229,6 +230,68 @@ async function run() {
       res.json(user);
     });
 
+    /*::::: payment intent from stripe::::::::: */
+    app.post("/create-payment-intent", async (req, res) => {
+      const paymentInfo = req.body;
+      // console.log(paymentInfo.amount * 100);
+      const amount = paymentInfo.amount * 100;
+      console.log(amount);
+      if (amount > 1) {
+        const paymentIntent = await stripe.paymentIntents.create({
+          currency: "usd",
+          amount: amount,
+          payment_method_types: ["card"],
+        });
+        res.json({ clientSecret: paymentIntent.client_secret });
+      }
+    });
+
+    /*:::: post payment info :::::::: */
+    /* app.put("/blogs/payment/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const payment = req.body;
+      const option = { upsert: true };
+      console.log(payment);
+      const updatePaymet = {
+        $push: {
+          payment: {
+            $each: [{ _id: ObjectId(), ...payment }],
+            $sort: -1,
+          },
+        },
+      };
+      const result = await blogsCollection.updateOne(
+        filter,
+        updatePaymet,
+        option
+      );
+      res.json(result);
+    }); */
+
+    /*:::: post payment info :::::::: */
+    app.put("/blogs/payment/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const payment = req.body;
+      const option = { upsert: true };
+      console.log(payment);
+      const updatePayment = {
+        $push: {
+          payment: {
+            $each: [{ _id: ObjectId(), ...payment }],
+            $sort: -1,
+          },
+        },
+      };
+      const result = await usersCollection.updateOne(
+        filter,
+        updatePayment,
+        option
+      );
+      res.json(result);
+    });
+
 
 
 
@@ -378,7 +441,21 @@ async function run() {
       const result = await productsCollection.insertOne(product)
       res.json(result)
       
-    });;
+    });
+
+    //Please dont uncomment the code below.
+    /*     const updateUserQuery = {};
+    const updateUserOptions = { upsert: true };
+    const updateUser = {
+      $set: {
+        payment: [],
+      },
+    };
+    const updateUserResult = await usersCollection.updateMany(
+      updateUserQuery,
+      updateUser,
+      updateUserOptions
+    ); */
 
 
   } finally {
