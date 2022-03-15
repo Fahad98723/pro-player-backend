@@ -54,11 +54,20 @@ async function run() {
     const usersCollection = database.collection("users");
     const userHelpCollection = database.collection("userHelp");
 
+    const productsCollection = database.collection('products');
+    const amazonProductsCollection = database.collection('amazonProducts');
+
+
     /*::::::::::::::::::::::::::::::::::::::::: 
     access blogs collection including pagination
     :::::::::::::::::::::::::::::::::::::::::::*/
     app.get("/blogs", async (req, res) => {
-      const cursor = blogsCollection.find({});
+      let query = {}
+      const email = req.query.email;
+      if (email) {
+        query = {bloggerEmail : email}
+      }
+      const cursor = blogsCollection.find(query);
       const page = req.query.page;
       const size = parseInt(req.query.size);
       const count = await cursor.count();
@@ -271,6 +280,7 @@ async function run() {
       res.json(result);
     });
 
+
     //sending likes array of object
     app.put("/blogs/likes/:id", async (req, res) => {
       const id = req.params.id;
@@ -284,10 +294,96 @@ async function run() {
       res.json(updatedPost);
     });
 
+  app.put("/blogs/views/:id", async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: ObjectId(id) };
+    const data = req.body;
+    console.log(data);
+    const views = { views: data.views, viewers : data.viewers }
+    const updateDoc = { $set: views };
+    console.log(updateDoc);
+    const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
+    res.json(updatedPost);
+  })
+
+
+  app.put("/users/room/:email", async (req, res) => {
+    const email = req.params.email;
+    console.log(email);
+    const filter = { email: email };
+    const data = req.body;
+    console.log(data);
+    const room = { room: data }
+    const updateDoc = { $set: room };
+    // console.log(updateDoc);
+    const createRoom = await usersCollection.updateOne(filter, updateDoc);
+    res.json(createRoom);
+  })
+
+
+  app.get('/users/room/:email', async (req, res) => {
+    const email = req.params.email
+    const query =  {email :  email}
+    const user = await usersCollection.findOne(query)
+    res.send(user)
+})
+
+
     // Please write down codes with commenting as like as top get request...
     // to start this server follow this command (you must install nodemon globally in your computer before running command)
     // npm run start-dev
     // Start coding, Happy coding Turbo fighter.....sanaul
+
+   /* ===============Amazon Products related============== */ 
+
+   /* Get All Products */
+    app.get('/products', async (req, res)=>{
+
+      
+      const cursor = productsCollection.find({});
+      const page  = req.query.page;
+      const size = parseInt(req.query.size);
+      let products;
+      const count = await cursor.count();
+      if(page){
+          products = await cursor.skip(page*size).limit(size).toArray()
+      }
+      else{
+          products = await cursor.toArray();
+      }
+      
+      res.json({count, products});
+  });
+
+  /* Get A single Products */
+  app.get('/products/:id', async (req, res)=>{
+    const id = req.params.id;
+    const query = {_id: ObjectId(id)};
+    const product = await productsCollection.findOne(query);
+    res.json(product);
+  });
+
+  // /* Post a Product */
+    app.post('/products', async (req, res)=>{
+      const productTitle = req.body.productTitle;
+      const productPrice = req.body.productPrice;
+      const description = req.body.description;
+      const image = req.files.image;
+      const imageData = image.data;
+      const incodedImage = imageData.toString('base64');
+      const imageBuffer = Buffer.from(incodedImage, 'base64');
+      const product = {
+        productTitle,
+        productPrice,
+        description,
+        imageBuffer,
+      }
+      const result = await productsCollection.insertOne(product)
+      res.json(result)
+      
+    });;
+
+
   } finally {
   }
 }
