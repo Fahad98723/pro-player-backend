@@ -39,7 +39,7 @@ async function verifyToken(req, res, next) {
       const decodedAdmin = await admin.auth().verifyIdToken(idToken);
       console.log("email :", decodedAdmin.email);
       req.decodedAdminEmail = decodedAdmin.email;
-    } catch {}
+    } catch { }
   }
   next();
 }
@@ -75,7 +75,7 @@ async function run() {
         blogs,
       });
     });
-    
+
     app.post("/blogs", async (req, res) => {
       const data = req.body;
       console.log(data);
@@ -110,30 +110,30 @@ async function run() {
       const id = req.params.id
       console.log(id);
       const data = req.body
-      const query = {_id : ObjectId(id)}
-      const option = {upsert : true}
+      const query = { _id: ObjectId(id) }
+      const option = { upsert: true }
       const updateDoc = {
-          $set : {
-            thumb : data.thumb, 
-            title : data.title,
-            totalHotel : data.totalHotel,
-            avgPrice : data.avgPrice ,
-            descAbout : data.descAbout,
-            desc1 : data.desc1, 
-            visitPlace : data.visitPlace, 
-            image1 : data.image1, 
-            image2 : data.image2, 
-            image3 : data.image3,
-            rating : data.rating,
-            day : data.day,
-            Latitude : data.Latitude,
-            longitude : data.longitude,
-            status : data.status
-          }
+        $set: {
+          thumb: data.thumb,
+          title: data.title,
+          totalHotel: data.totalHotel,
+          avgPrice: data.avgPrice,
+          descAbout: data.descAbout,
+          desc1: data.desc1,
+          visitPlace: data.visitPlace,
+          image1: data.image1,
+          image2: data.image2,
+          image3: data.image3,
+          rating: data.rating,
+          day: data.day,
+          Latitude: data.Latitude,
+          longitude: data.longitude,
+          status: data.status
+        }
       }
       const result = await blogsCollection.updateOne(query, updateDoc, option)
       res.json(result)
-  })
+    })
 
 
     //   app.get('/users/:email', async (req, res) => {
@@ -147,18 +147,18 @@ async function run() {
     //     res.json({ admin: isAdmin });
     // })
 
-      app.get('/users/:email', async (req, res) => {
-        const email = req.params.email
-        const query =  {email :  email}
-        const user = await usersCollection.findOne(query)
-        let isAdmin = false
-        if (user?.role === 'admin') {
-            isAdmin = true
-        }
-        else{
-            isAdmin = false
-        }
-        res.send({admin : isAdmin})
+    app.get('/users/:email', async (req, res) => {
+      const email = req.params.email
+      const query = { email: email }
+      const user = await usersCollection.findOne(query)
+      let isAdmin = false
+      if (user?.role === 'admin') {
+        isAdmin = true
+      }
+      else {
+        isAdmin = false
+      }
+      res.send({ admin: isAdmin })
     })
 
     // Make Admin jwt token
@@ -181,6 +181,31 @@ async function run() {
       }
     });
 
+    // Make Admin
+
+    app.put("/users", async (req, res) => {
+
+      const user = req.body;
+      const filter = { email: user.email, role: user.role };
+      console.log('role', user);
+      if (user.role == 'admin') {
+        const updateDoc = {
+          $set: { role: 'user' },
+        };
+        const result = await usersCollection.updateOne(filter, updateDoc);
+        res.json(result);
+      }
+      else {
+        const updateDoc = {
+          $set: { role: 'admin' },
+        };
+        const result = await usersCollection.updateOne(filter, updateDoc);
+        res.json(result);
+      }
+
+      // const result = await usersCollection.updateOne(filter, updateDoc);
+      // res.json(result);
+    });
 
 
     //if your data already had saved in the database then we don't want save it again
@@ -239,21 +264,23 @@ async function run() {
       const query = { _id: ObjectId(id) }
       const result = await blogsCollection.findOne(query);
       res.json(result);
-  });
+    });
 
-  //sending likes array of object
-  app.put("/blogs/likes/:id", async (req, res) => {
-    const id = req.params.id;
-    const filter = { _id: ObjectId(id) };
-    const data = req.body;
-    const likes = { likes: data?.likes,
-      likers : data?.likers }
-    console.log(likes);
-    const updateDoc = { $set: likes };
-    // console.log(updateDoc);
-    const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
-    res.json(updatedPost);
-  })
+    //sending likes array of object
+    app.put("/blogs/likes/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const data = req.body;
+      const likes = {
+        likes: data?.likes,
+        likers: data?.likers
+      }
+      console.log(likes);
+      const updateDoc = { $set: likes };
+      // console.log(updateDoc);
+      const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
+      res.json(updatedPost);
+    })
 
 
     // Please write down codes with commenting as like as top get request...
