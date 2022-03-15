@@ -389,6 +389,21 @@ async function run() {
 })
 
 
+  app.put("/users/followers/:email", async (req, res) => {
+    const email = req.params.email;
+    const filter = { email: email};
+    const data = req.body;
+    console.log(data);
+    const followers = { followersCount: data.followersCount, followers : data.followers }
+    const updateDoc = { $set: followers };
+    console.log(updateDoc);
+    const updatedPost = await usersCollection.updateOne(filter, updateDoc);
+    res.json(updatedPost);
+  })
+
+
+
+
     // Please write down codes with commenting as like as top get request...
     // to start this server follow this command (you must install nodemon globally in your computer before running command)
     // npm run start-dev
