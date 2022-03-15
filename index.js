@@ -53,6 +53,9 @@ async function run() {
     const usersCollection = database.collection("users");
     const userHelpCollection = database.collection("userHelp");
 
+    const productsCollection = database.collection('products');
+    const amazonProductsCollection = database.collection('amazonProducts');
+
 
     /*::::::::::::::::::::::::::::::::::::::::: 
     access blogs collection including pagination
@@ -315,6 +318,57 @@ async function run() {
     // to start this server follow this command (you must install nodemon globally in your computer before running command)
     // npm run start-dev
     // Start coding, Happy coding Turbo fighter.....sanaul
+
+   /* ===============Amazon Products related============== */ 
+
+   /* Get All Products */
+    app.get('/products', async (req, res)=>{
+
+      
+      const cursor = productsCollection.find({});
+      const page  = req.query.page;
+      const size = parseInt(req.query.size);
+      let products;
+      const count = await cursor.count();
+      if(page){
+          products = await cursor.skip(page*size).limit(size).toArray()
+      }
+      else{
+          products = await cursor.toArray();
+      }
+      
+      res.json({count, products});
+  });
+
+  /* Get A single Products */
+  app.get('/products/:id', async (req, res)=>{
+    const id = req.params.id;
+    const query = {_id: ObjectId(id)};
+    const product = await productsCollection.findOne(query);
+    res.json(product);
+  });
+
+  // /* Post a Product */
+    app.post('/products', async (req, res)=>{
+      const productTitle = req.body.productTitle;
+      const productPrice = req.body.productPrice;
+      const description = req.body.description;
+      const image = req.files.image;
+      const imageData = image.data;
+      const incodedImage = imageData.toString('base64');
+      const imageBuffer = Buffer.from(incodedImage, 'base64');
+      const product = {
+        productTitle,
+        productPrice,
+        description,
+        imageBuffer,
+      }
+      const result = await productsCollection.insertOne(product)
+      res.json(result)
+      
+    });;
+
+
   } finally {
   }
 }
