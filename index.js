@@ -428,6 +428,7 @@ async function run() {
       res.json(result);
     });
 
+    /* ::: Single User :::: */
     app.get("/user/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
