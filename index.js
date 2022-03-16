@@ -452,16 +452,24 @@ async function run() {
       res.json(user);
     });
 
-    app.put("/views", async(req, res) => {
+    app.post("/views", async(req, res) => {
       const data = req.body;
       console.log(data);
-      const filter = { blogId: data.blogId };
-      const option = { upsert: true };
-      const updateDoc = {
-        $set: data,
-      };
-      const views = await viewsCollection.updateOne(filter, updateDoc, option);
-      res.json(views);
+      const user = await viewsCollection.insertOne(data);
+      res.json(user);
+    })
+
+    app.get("/views", async (req, res) => {
+      const result = await viewsCollection.find({}).toArray();
+      res.json(result);
+    });
+
+    app.delete("/views/:id", async (req, res) => {
+      const id = req.params.id
+      console.log(id);
+      const query = {_id : ObjectId(id)}
+      const result = await viewsCollection.deleteOne(query)
+      res.json(result)
     })
 
     //Please dont uncomment the code below.
