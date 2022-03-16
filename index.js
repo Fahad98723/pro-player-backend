@@ -55,7 +55,7 @@ async function run() {
     const userHelpCollection = database.collection("userHelp");
 
     const productsCollection = database.collection("products");
-    const amazonProductsCollection = database.collection("amazonProducts");
+    const cartCollection = database.collection("cart");
 
     /*::::::::::::::::::::::::::::::::::::::::: 
     access blogs collection including pagination
@@ -450,6 +450,26 @@ async function run() {
       const user = await usersCollection.findOne(query);
       res.json(user);
     });
+
+    /* :::::::::::::::::::::::::::::::::::::
+    Post product add to the cart
+    :::::::::::::::::::::::::::::::::::::::*/
+    app.post("/cart", async (req, res) => {
+      const data = req.body;
+      console.log(data);
+      const cart = await cartCollection.insertOne(data);
+      res.json(cart);
+    });
+
+     /* :::::::::::::::::::::::::::::::::::::
+    Load cart collection
+    :::::::::::::::::::::::::::::::::::::::*/
+    app.get("/cart", async (req, res) => {
+      const cart = await cartCollection.find({}).toArray();
+      res.send(cart);
+    });
+
+
 
     //Please dont uncomment the code below.
     /*     const updateUserQuery = {};
