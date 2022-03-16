@@ -56,6 +56,8 @@ async function run() {
 
     const productsCollection = database.collection("products");
     const cartCollection = database.collection("cart");
+    const amazonProductsCollection = database.collection("amazonProducts");
+    const viewsCollection = database.collection("views");
 
     /*::::::::::::::::::::::::::::::::::::::::: 
     access blogs collection including pagination
@@ -189,27 +191,27 @@ async function run() {
 
     // Make Admin
 
-    // app.put("/users", async (req, res) => {
-    //   const user = req.body;
-    //   const filter = { email: user.email, role: user.role };
-    //   console.log("role", user);
-    //   if (user.role == "admin") {
-    //     const updateDoc = {
-    //       $set: { role: "user" },
-    //     };
-    //     const result = await usersCollection.updateOne(filter, updateDoc);
-    //     res.json(result);
-    //   } else {
-    //     const updateDoc = {
-    //       $set: { role: "admin" },
-    //     };
-    //     const result = await usersCollection.updateOne(filter, updateDoc);
-    //     res.json(result);
-    //   }
+    app.put("/makeAdmin", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email, role: user.role };
+      console.log("role", user);
+      if (user.role == "admin") {
+        const updateDoc = {
+          $set: { role: "user" },
+        };
+        const result = await usersCollection.updateOne(filter, updateDoc);
+        res.json(result);
+      } else {
+        const updateDoc = {
+          $set: { role: "admin" },
+        };
+        const result = await usersCollection.updateOne(filter, updateDoc);
+        res.json(result);
+      }
 
-    //   // const result = await usersCollection.updateOne(filter, updateDoc);
-    //   // res.json(result);
-    // });
+      // const result = await usersCollection.updateOne(filter, updateDoc);
+      // res.json(result);
+    });
 
     //if your data already had saved in the database then we don't want save it again
     app.put("/users", async (req, res) => {
@@ -469,6 +471,18 @@ async function run() {
       res.send(cart);
     });
 
+
+    app.put("/views", async(req, res) => {
+      const data = req.body;
+      console.log(data);
+      const filter = { blogId: data.blogId };
+      const option = { upsert: true };
+      const updateDoc = {
+        $set: data,
+      };
+      const views = await viewsCollection.updateOne(filter, updateDoc, option);
+      res.json(views);
+    })
 
 
     //Please dont uncomment the code below.
