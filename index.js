@@ -40,7 +40,7 @@ async function verifyToken(req, res, next) {
       const decodedAdmin = await admin.auth().verifyIdToken(idToken);
       console.log("email :", decodedAdmin.email);
       req.decodedAdminEmail = decodedAdmin.email;
-    } catch { }
+    } catch {}
   }
   next();
 }
@@ -54,18 +54,17 @@ async function run() {
     const usersCollection = database.collection("users");
     const userHelpCollection = database.collection("userHelp");
 
-    const productsCollection = database.collection('products');
-    const amazonProductsCollection = database.collection('amazonProducts');
-
+    const productsCollection = database.collection("products");
+    const amazonProductsCollection = database.collection("amazonProducts");
 
     /*::::::::::::::::::::::::::::::::::::::::: 
     access blogs collection including pagination
     :::::::::::::::::::::::::::::::::::::::::::*/
     app.get("/blogs", async (req, res) => {
-      let query = {}
+      let query = {};
       const email = req.query.email;
       if (email) {
-        query = {bloggerEmail : email}
+        query = { bloggerEmail: email };
       }
       const cursor = blogsCollection.find(query);
       const page = req.query.page;
@@ -112,16 +111,15 @@ async function run() {
       res.send(users);
     });
 
-
     /* :::::::::::::::::::::::::::::::::::::
     put User  channel
     :::::::::::::::::::::::::::::::::::::::*/
-    app.put('/users/:id', async (req, res) => {
-      const id = req.params.id
+    app.put("/users/:id", async (req, res) => {
+      const id = req.params.id;
       console.log(id);
-      const data = req.body
-      const query = { _id: ObjectId(id) }
-      const option = { upsert: true }
+      const data = req.body;
+      const query = { _id: ObjectId(id) };
+      const option = { upsert: true };
       const updateDoc = {
         $set: {
           thumb: data.thumb,
@@ -138,13 +136,12 @@ async function run() {
           day: data.day,
           Latitude: data.Latitude,
           longitude: data.longitude,
-          status: data.status
-        }
-      }
-      const result = await blogsCollection.updateOne(query, updateDoc, option)
-      res.json(result)
-    })
-
+          status: data.status,
+        },
+      };
+      const result = await blogsCollection.updateOne(query, updateDoc, option);
+      res.json(result);
+    });
 
     //   app.get('/users/:email', async (req, res) => {
     //     const email = req.params.email;
@@ -157,19 +154,18 @@ async function run() {
     //     res.json({ admin: isAdmin });
     // })
 
-    app.get('/users/:email', async (req, res) => {
-      const email = req.params.email
-      const query = { email: email }
-      const user = await usersCollection.findOne(query)
-      let isAdmin = false
-      if (user?.role === 'admin') {
-        isAdmin = true
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let isAdmin = false;
+      if (user?.role === "admin") {
+        isAdmin = true;
+      } else {
+        isAdmin = false;
       }
-      else {
-        isAdmin = false
-      }
-      res.send({ admin: isAdmin })
-    })
+      res.send({ admin: isAdmin });
+    });
 
     // Make Admin jwt token
     app.get("/users/admin", verifyToken, async (req, res) => {
@@ -194,20 +190,18 @@ async function run() {
     // Make Admin
 
     app.put("/users", async (req, res) => {
-
       const user = req.body;
       const filter = { email: user.email, role: user.role };
-      console.log('role', user);
-      if (user.role == 'admin') {
+      console.log("role", user);
+      if (user.role == "admin") {
         const updateDoc = {
-          $set: { role: 'user' },
+          $set: { role: "user" },
         };
         const result = await usersCollection.updateOne(filter, updateDoc);
         res.json(result);
-      }
-      else {
+      } else {
         const updateDoc = {
-          $set: { role: 'admin' },
+          $set: { role: "admin" },
         };
         const result = await usersCollection.updateOne(filter, updateDoc);
         res.json(result);
@@ -216,7 +210,6 @@ async function run() {
       // const result = await usersCollection.updateOne(filter, updateDoc);
       // res.json(result);
     });
-
 
     //if your data already had saved in the database then we don't want save it again
     app.put("/users", async (req, res) => {
@@ -245,7 +238,7 @@ async function run() {
         res.json({ clientSecret: paymentIntent.client_secret });
       }
     });
-
+    /* :::::payment gateway starts ::::: */
     /*:::: post payment info :::::::: */
     /* app.put("/blogs/payment/:id", async (req, res) => {
       const id = req.params.id;
@@ -291,9 +284,7 @@ async function run() {
       );
       res.json(result);
     });
-
-
-
+    /* :::::payment gateway end ::::: */
 
     /* :::::::::::::::::::::::::::::::::::::
     Post User Help Message
@@ -304,8 +295,6 @@ async function run() {
       const userHelp = await userHelpCollection.insertOne(data);
       res.json(userHelp);
     });
-
-
 
     /* :::::::::::::::::::::::::::::::::::::
     Load User Help Message
@@ -323,17 +312,17 @@ async function run() {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const data = req.body;
-      const comment = { comment: data }
+      const comment = { comment: data };
       const updateDoc = { $set: comment };
       console.log(updateDoc);
       const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
       res.json(updatedPost);
-    })
+    });
 
     //Get SIngle Blog
-    app.get('/blogs/:id', async (req, res) => {
+    app.get("/blogs/:id", async (req, res) => {
       const id = req.params;
-      const query = { _id: ObjectId(id) }
+      const query = { _id: ObjectId(id) };
       const result = await blogsCollection.findOne(query);
       res.json(result);
     });
@@ -345,49 +334,46 @@ async function run() {
       const data = req.body;
       const likes = {
         likes: data?.likes,
-        likers: data?.likers
-      }
+        likers: data?.likers,
+      };
       console.log(likes);
       const updateDoc = { $set: likes };
       // console.log(updateDoc);
       const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
       res.json(updatedPost);
-    })
+    });
 
-  app.put("/blogs/views/:id", async (req, res) => {
-    const id = req.params.id;
-    const filter = { _id: ObjectId(id) };
-    const data = req.body;
-    console.log(data);
-    const views = { views: data.views, viewers : data.viewers }
-    const updateDoc = { $set: views };
-    console.log(updateDoc);
-    const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
-    res.json(updatedPost);
-  })
+    app.put("/blogs/views/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const data = req.body;
+      console.log(data);
+      const views = { views: data.views, viewers: data.viewers };
+      const updateDoc = { $set: views };
+      console.log(updateDoc);
+      const updatedPost = await blogsCollection.updateOne(filter, updateDoc);
+      res.json(updatedPost);
+    });
 
+    app.put("/users/room/:email", async (req, res) => {
+      const email = req.params.email;
+      console.log(email);
+      const filter = { email: email };
+      const data = req.body;
+      console.log(data);
+      const room = { room: data };
+      const updateDoc = { $set: room };
+      // console.log(updateDoc);
+      const createRoom = await usersCollection.updateOne(filter, updateDoc);
+      res.json(createRoom);
+    });
 
-  app.put("/users/room/:email", async (req, res) => {
-    const email = req.params.email;
-    console.log(email);
-    const filter = { email: email };
-    const data = req.body;
-    console.log(data);
-    const room = { room: data }
-    const updateDoc = { $set: room };
-    // console.log(updateDoc);
-    const createRoom = await usersCollection.updateOne(filter, updateDoc);
-    res.json(createRoom);
-  })
-
-
-  app.get('/users/room/:email', async (req, res) => {
-    const email = req.params.email
-    const query =  {email :  email}
-    const user = await usersCollection.findOne(query)
-    res.send(user)
-})
-
+    app.get("/users/room/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      res.send(user);
+    });
 
   app.put("/users/followers/:email", async (req, res) => {
     const email = req.params.email;
@@ -409,53 +395,60 @@ async function run() {
     // npm run start-dev
     // Start coding, Happy coding Turbo fighter.....sanaul
 
-   /* ===============Amazon Products related============== */ 
+    /* ===============Amazon Products related============== */
 
-   /* Get All Products */
-    app.get('/products', async (req, res)=>{
-
-      
+    /* Get All Products */
+    app.get("/products", async (req, res) => {
       const cursor = productsCollection.find({});
-      const page  = req.query.page;
+      const page = req.query.page;
       const size = parseInt(req.query.size);
       let products;
       const count = await cursor.count();
-      if(page){
-          products = await cursor.skip(page*size).limit(size).toArray()
+      if (page) {
+        products = await cursor
+          .skip(page * size)
+          .limit(size)
+          .toArray();
+      } else {
+        products = await cursor.toArray();
       }
-      else{
-          products = await cursor.toArray();
-      }
-      
-      res.json({count, products});
-  });
 
-  /* Get A single Products */
-  app.get('/products/:id', async (req, res)=>{
-    const id = req.params.id;
-    const query = {_id: ObjectId(id)};
-    const product = await productsCollection.findOne(query);
-    res.json(product);
-  });
+      res.json({ count, products });
+    });
 
-  // /* Post a Product */
-    app.post('/products', async (req, res)=>{
+    /* Get A single Products */
+    app.get("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const product = await productsCollection.findOne(query);
+      res.json(product);
+    });
+
+    // /* Post a Product */
+    app.post("/products", async (req, res) => {
       const productTitle = req.body.productTitle;
       const productPrice = req.body.productPrice;
       const description = req.body.description;
       const image = req.files.image;
       const imageData = image.data;
-      const incodedImage = imageData.toString('base64');
-      const imageBuffer = Buffer.from(incodedImage, 'base64');
+      const incodedImage = imageData.toString("base64");
+      const imageBuffer = Buffer.from(incodedImage, "base64");
       const product = {
         productTitle,
         productPrice,
         description,
         imageBuffer,
-      }
-      const result = await productsCollection.insertOne(product)
-      res.json(result)
-      
+      };
+      const result = await productsCollection.insertOne(product);
+      res.json(result);
+    });
+
+    /* ::: Single User :::: */
+    app.get("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      res.json(user);
     });
 
     //Please dont uncomment the code below.
@@ -471,14 +464,12 @@ async function run() {
       updateUser,
       updateUserOptions
     ); */
-
-
   } finally {
   }
 }
 run().catch(console.dir);
 
-app.use('/auth', authRoutes);
+app.use("/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Pro player server is running now!");
