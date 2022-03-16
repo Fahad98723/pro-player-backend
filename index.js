@@ -55,6 +55,7 @@ async function run() {
     const userHelpCollection = database.collection("userHelp");
 
     const productsCollection = database.collection("products");
+    const cartCollection = database.collection("cart");
     const amazonProductsCollection = database.collection("amazonProducts");
     const viewsCollection = database.collection("views");
 
@@ -452,6 +453,25 @@ async function run() {
       res.json(user);
     });
 
+    /* :::::::::::::::::::::::::::::::::::::
+    Post product add to the cart
+    :::::::::::::::::::::::::::::::::::::::*/
+    app.post("/cart", async (req, res) => {
+      const data = req.body;
+      console.log(data);
+      const cart = await cartCollection.insertOne(data);
+      res.json(cart);
+    });
+
+     /* :::::::::::::::::::::::::::::::::::::
+    Load cart collection
+    :::::::::::::::::::::::::::::::::::::::*/
+    app.get("/cart", async (req, res) => {
+      const cart = await cartCollection.find({}).toArray();
+      res.send(cart);
+    });
+
+
     app.put("/views", async(req, res) => {
       const data = req.body;
       console.log(data);
@@ -463,6 +483,7 @@ async function run() {
       const views = await viewsCollection.updateOne(filter, updateDoc, option);
       res.json(views);
     })
+
 
     //Please dont uncomment the code below.
     /*     const updateUserQuery = {};
