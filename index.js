@@ -58,6 +58,8 @@ async function run() {
     const cartCollection = database.collection("cart");
     const amazonProductsCollection = database.collection("amazonProducts");
     const viewsCollection = database.collection("views");
+    const revenueCollection = database.collection("revenue");
+    const costCollection = database.collection("cost");
 
     /*::::::::::::::::::::::::::::::::::::::::: 
     access blogs collection including pagination
@@ -492,6 +494,40 @@ async function run() {
       res.json(result)
     })
 
+
+    app.put("/revenue", async (req, res) => {
+      const data = req.body;
+      console.log(data);
+      const filter = { year: data.year };
+      const option = { upsert: true };
+      const updateDoc = {
+        $set: data,
+      };
+      const revenue = await revenueCollection.updateOne(filter, updateDoc, option);
+      res.json(revenue);
+    });
+
+    app.get("/revenue", async (req, res) => {
+      const result = await revenueCollection.find({}).toArray();
+      res.json(result);
+    });
+
+    app.put("/cost", async (req, res) => {
+      const data = req.body;
+      console.log(data);
+      const filter = { year: data.year };
+      const option = { upsert: true };
+      const updateDoc = {
+        $set: data,
+      };
+      const revenue = await costCollection.updateOne(filter, updateDoc, option);
+      res.json(revenue);
+    });
+
+    app.get("/cost", async (req, res) => {
+      const result = await costCollection.find({}).toArray();
+      res.json(result);
+    });
 
     //Please dont uncomment the code below.
     /*     const updateUserQuery = {};
