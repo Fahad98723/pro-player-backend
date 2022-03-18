@@ -68,16 +68,24 @@ async function run() {
       if (email) {
         query = { bloggerEmail: email };
       }
-      const cursor = blogsCollection.find(query);
+      let cursor = blogsCollection.find(query);
       const page = req.query.page;
+      const category = req.query.filter;
       const size = parseInt(req.query.size);
-      const count = await cursor.count();
+      let count = await cursor.count();
       let blogs;
       if (page) {
         blogs = await cursor
           .skip(page * size)
           .limit(size)
           .toArray();
+      } else if (category) {
+        /* ::::: Filter by Category :::::: */
+        const filter = category.charAt(0).toUpperCase() + category.slice(1);
+        console.log(filter);
+        cursor = blogsCollection.find({ category: { $all: [filter] } });
+        blogs = await cursor.toArray();
+        count = await cursor.count();
       } else {
         blogs = await cursor.toArray();
       }
@@ -377,20 +385,20 @@ async function run() {
       res.send(user);
     });
 
-  app.put("/users/followers/:email", async (req, res) => {
-    const email = req.params.email;
-    const filter = { email: email};
-    const data = req.body;
-    console.log(data);
-    const followers = { followersCount: data.followersCount, followers : data.followers }
-    const updateDoc = { $set: followers };
-    console.log(updateDoc);
-    const updatedPost = await usersCollection.updateOne(filter, updateDoc);
-    res.json(updatedPost);
-  })
-
-
-
+    app.put("/users/followers/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const data = req.body;
+      console.log(data);
+      const followers = {
+        followersCount: data.followersCount,
+        followers: data.followers,
+      };
+      const updateDoc = { $set: followers };
+      console.log(updateDoc);
+      const updatedPost = await usersCollection.updateOne(filter, updateDoc);
+      res.json(updatedPost);
+    });
 
     // Please write down codes with commenting as like as top get request...
     // to start this server follow this command (you must install nodemon globally in your computer before running command)
@@ -463,7 +471,7 @@ async function run() {
       res.json(cart);
     });
 
-     /* :::::::::::::::::::::::::::::::::::::
+    /* :::::::::::::::::::::::::::::::::::::
     Load cart collection
     :::::::::::::::::::::::::::::::::::::::*/
     app.get("/cart", async (req, res) => {
@@ -471,13 +479,12 @@ async function run() {
       res.send(cart);
     });
 
-
-    app.post("/views", async(req, res) => {
+    app.post("/views", async (req, res) => {
       const data = req.body;
       console.log(data);
       const user = await viewsCollection.insertOne(data);
       res.json(user);
-    })
+    });
 
     app.get("/views", async (req, res) => {
       const result = await viewsCollection.find({}).toArray();
@@ -485,13 +492,12 @@ async function run() {
     });
 
     app.delete("/views/:id", async (req, res) => {
-      const id = req.params.id
+      const id = req.params.id;
       console.log(id);
-      const query = {_id : ObjectId(id)}
-      const result = await viewsCollection.deleteOne(query)
-      res.json(result)
-    })
-
+      const query = { _id: ObjectId(id) };
+      const result = await viewsCollection.deleteOne(query);
+      res.json(result);
+    });
 
     //Please dont uncomment the code below.
     /*     const updateUserQuery = {};
