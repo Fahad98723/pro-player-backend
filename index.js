@@ -58,6 +58,7 @@ async function run() {
     const cartCollection = database.collection("cart");
     const amazonProductsCollection = database.collection("amazonProducts");
     const viewsCollection = database.collection("views");
+    const bookingProductsCollection = database.collection("bookingProducts");
 
     /*::::::::::::::::::::::::::::::::::::::::: 
     access blogs collection including pagination
@@ -458,9 +459,28 @@ async function run() {
     :::::::::::::::::::::::::::::::::::::::*/
     app.post("/cart", async (req, res) => {
       const data = req.body;
-      console.log(data);
+      
       const cart = await cartCollection.insertOne(data);
       res.json(cart);
+    });
+
+     /* :::::::::::::::::::::::::::::::::::::
+    Post booking-product add to the cart
+    :::::::::::::::::::::::::::::::::::::::*/
+    app.post("/bookingProducts", async (req, res) => {
+      const data = req.body;
+      console.log(data);
+      const bookingProduct = await bookingProductsCollection.insertOne(data);
+      res.json(bookingProduct);
+    });
+
+
+     /* :::::::::::::::::::::::::::::::::::::
+    Load bookingProducts collection
+    :::::::::::::::::::::::::::::::::::::::*/
+    app.get("/bookingProducts", async (req, res) => {
+      const bookingProduct = await bookingProductsCollection.find({}).toArray();
+      res.send(bookingProduct);
     });
 
      /* :::::::::::::::::::::::::::::::::::::
