@@ -60,6 +60,7 @@ async function run() {
     const viewsCollection = database.collection("views");
     const revenueCollection = database.collection("revenue");
     const costCollection = database.collection("cost");
+    const bookingProductsCollection = database.collection("bookingProducts");
 
     /*::::::::::::::::::::::::::::::::::::::::: 
     access blogs collection including pagination
@@ -533,6 +534,24 @@ async function run() {
     app.get("/cost", async (req, res) => {
       const result = await costCollection.find({}).toArray();
       res.json(result);
+    });
+
+    /* :::::::::::::::::::::::::::::::::::::
+    Post booking-product add to the cart
+    :::::::::::::::::::::::::::::::::::::::*/
+    app.post("/bookingProducts", async (req, res) => {
+      const data = req.body;
+      console.log(data);
+      const bookingProduct = await bookingProductsCollection.insertOne(data);
+      res.json(bookingProduct);
+    });
+
+    /* :::::::::::::::::::::::::::::::::::::
+    Load bookingProducts collection
+    :::::::::::::::::::::::::::::::::::::::*/
+    app.get("/bookingProducts", async (req, res) => {
+      const bookingProduct = await bookingProductsCollection.find({}).toArray();
+      res.send(bookingProduct);
     });
 
     //Please dont uncomment the code below.
