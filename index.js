@@ -554,6 +554,18 @@ async function run() {
       res.send(bookingProduct);
     });
 
+
+    //blog delete 
+
+    app.delete("/blogs/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: ObjectId(id) };
+      console.log(query);
+      const result = await blogsCollection.deleteOne(query);
+      res.json(result);
+    });
+
     //Please dont uncomment the code below.
     /*     const updateUserQuery = {};
     const updateUserOptions = { upsert: true };
