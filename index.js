@@ -402,7 +402,9 @@ async function run() {
 
     /* Get All Products */
     app.get("/products", async (req, res) => {
-      const cursor = productsCollection.find({});
+      const email =req.query.email;
+      const query ={ email: email}
+      const cursor = productsCollection.find(query);
       const page = req.query.page;
       const size = parseInt(req.query.size);
       let products;
@@ -429,6 +431,7 @@ async function run() {
 
     // /* Post a Product */
     app.post("/products", async (req, res) => {
+      const email = req.body.email;
       const productTitle = req.body.productTitle;
       const productPrice = req.body.productPrice;
       const description = req.body.description;
@@ -437,6 +440,7 @@ async function run() {
       const incodedImage = imageData.toString("base64");
       const imageBuffer = Buffer.from(incodedImage, "base64");
       const product = {
+        email,
         productTitle,
         productPrice,
         description,
