@@ -72,23 +72,29 @@ async function run() {
         query = { bloggerEmail: email };
       }
       let cursor = blogsCollection.find(query);
-      const page = req.query.page;
+      const page = req.query?.page;
       const category = req.query.filter;
-      const size = parseInt(req.query.size);
+      const size = parseInt(req.query?.size);
       let count = await cursor.count();
       let blogs;
-      if (page) {
+      if (page && size) {
         blogs = await cursor
           .skip(page * size)
           .limit(size)
           .toArray();
+        console.log(page, size);
       } else if (category) {
         /* ::::: Filter by Category :::::: */
         const filter = category.charAt(0).toUpperCase() + category.slice(1);
         console.log(filter);
-        cursor = blogsCollection.find({ category: { $all: [filter] } });
-        blogs = await cursor.toArray();
-        count = await cursor.count();
+
+        if (filter === "All") {
+          blogs = await cursor.toArray();
+        } else {
+          cursor = blogsCollection.find({ category: { $all: [filter] } });
+          blogs = await cursor.toArray();
+          count = await cursor.count();
+        }
       } else {
         blogs = await cursor.toArray();
       }
@@ -510,7 +516,11 @@ async function run() {
       const updateDoc = {
         $set: data,
       };
-      const revenue = await revenueCollection.updateOne(filter, updateDoc, option);
+      const revenue = await revenueCollection.updateOne(
+        filter,
+        updateDoc,
+        option
+      );
       res.json(revenue);
     });
 
