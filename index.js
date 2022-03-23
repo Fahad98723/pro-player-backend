@@ -63,6 +63,7 @@ async function run() {
     const bookingProductsCollection = database.collection("bookingProducts");
 
     const notificationCollection = database.collection("notifications");
+    const uniqueVisitorsCollection = database.collection("uniqueVisitors");
 
     /*::::::::::::::::::::::::::::::::::::::::: 
     access blogs collection including pagination
@@ -614,6 +615,39 @@ async function run() {
     app.get("/notifications", async (req, res) => {
       const notifications = await notificationCollection.find({}).toArray();
       res.send(notifications);
+    });
+
+
+    /* ::::::::::::::::::::::::::::
+    Unique visitors post
+    ::::::::::::::::::::::::::::::::::::*/
+    app.post("/uniqueVisitors", async (req, res) => {
+      const data = req.body;
+      
+      const visitors = await uniqueVisitorsCollection.insertOne(data);
+      console.log(visitors);
+      res.json(visitors);
+    });
+
+    /* :::::::::::::::::::::::::::::::::::::
+    Load visitors
+    :::::::::::::::::::::::::::::::::::::::*/
+    app.get("/uniqueVisitors", async (req, res) => {
+      const visitors = await uniqueVisitorsCollection.find({}).toArray();
+      res.send(visitors);
+    });
+    
+
+
+    app.put("/uniqueVisitors/:date", async (req, res) => {
+      const date = req.params.date;
+      const filter = {name : date}
+      const data = req.body;
+      const option = {upsert : true}
+      const updateDoc = {$set: data}
+      const visitor = await uniqueVisitorsCollection.updateOne(filter, updateDoc, option);
+      console.log(visitor);
+      res.json(visitor);
     });
 
     //Please dont uncomment the code below.
