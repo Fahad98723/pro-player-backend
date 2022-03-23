@@ -62,6 +62,8 @@ async function run() {
     const costCollection = database.collection("cost");
     const bookingProductsCollection = database.collection("bookingProducts");
 
+    const notificationCollection = database.collection("notifications");
+
     /*::::::::::::::::::::::::::::::::::::::::: 
     access blogs collection including pagination
     :::::::::::::::::::::::::::::::::::::::::::*/
@@ -319,8 +321,10 @@ async function run() {
     Load User Help Message
     :::::::::::::::::::::::::::::::::::::::*/
     app.get("/userHelp", async (req, res) => {
-      const usersHelp = await userHelpCollection.find({}).toArray();
+      const sort = { _id: -1 };
+      const usersHelp = await userHelpCollection.find({}).sort(sort).toArray();
       res.send(usersHelp);
+      console.log("userhelp");
     });
 
     /* :::::::::::::::::::::::::::::::::::::
@@ -426,7 +430,7 @@ async function run() {
       let cursor = productsCollection.find(query);
       const page = req.query.page;
       const size = parseInt(req.query.size);
-      
+
       let products;
       const count = await cursor.count();
       if (page) {
@@ -464,7 +468,7 @@ async function run() {
         productPrice,
         description,
         imageBuffer,
-        email
+        email,
       };
       const result = await productsCollection.insertOne(product);
       res.json(result);
@@ -572,8 +576,7 @@ async function run() {
       res.send(bookingProduct);
     });
 
-
-    //blog delete 
+    //blog delete
 
     app.delete("/blogs/:id", async (req, res) => {
       const id = req.params.id;
@@ -597,6 +600,20 @@ async function run() {
       console.log(updateDoc);
       const updatedPost = await usersCollection.updateOne(filter, updateDoc);
       res.json(updatedPost);
+    });
+
+    /* ::::post notification ::: */
+    app.post("/notifications", async (req, res) => {
+      const data = req.body;
+      const userHelpNotification = await notificationCollection.insertOne(data);
+      console.log("inserted");
+      res.json(userHelpNotification);
+    });
+
+    /* ::::get notification ::: */
+    app.get("/notifications", async (req, res) => {
+      const notifications = await notificationCollection.find({}).toArray();
+      res.send(notifications);
     });
 
     //Please dont uncomment the code below.
