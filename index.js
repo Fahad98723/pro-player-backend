@@ -418,9 +418,15 @@ async function run() {
 
     /* Get All Products */
     app.get("/products", async (req, res) => {
-      const cursor = productsCollection.find({});
+      let query = {};
+      const email = req.query.email;
+      if (email) {
+        query = { email: email };
+      }
+      let cursor = productsCollection.find(query);
       const page = req.query.page;
       const size = parseInt(req.query.size);
+      
       let products;
       const count = await cursor.count();
       if (page) {
@@ -447,6 +453,7 @@ async function run() {
     app.post("/products", async (req, res) => {
       const productTitle = req.body.productTitle;
       const productPrice = req.body.productPrice;
+      const email = req.body.email;
       const description = req.body.description;
       const image = req.files.image;
       const imageData = image.data;
@@ -457,6 +464,7 @@ async function run() {
         productPrice,
         description,
         imageBuffer,
+        email
       };
       const result = await productsCollection.insertOne(product);
       res.json(result);
@@ -574,6 +582,21 @@ async function run() {
       console.log(query);
       const result = await blogsCollection.deleteOne(query);
       res.json(result);
+    });
+
+    app.put("/users/followings/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const data = req.body;
+      console.log(data);
+      const followings = {
+        followingsCount: data.followingsCount,
+        followings: data.followings,
+      };
+      const updateDoc = { $set: followings };
+      console.log(updateDoc);
+      const updatedPost = await usersCollection.updateOne(filter, updateDoc);
+      res.json(updatedPost);
     });
 
     //Please dont uncomment the code below.
