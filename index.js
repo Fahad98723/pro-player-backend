@@ -61,7 +61,8 @@ async function run() {
     const revenueCollection = database.collection("revenue");
     const costCollection = database.collection("cost");
     const bookingProductsCollection = database.collection("bookingProducts");
-    const uniqueVisitorsCollection = database.collection("uniqueVisitors")
+
+    const notificationCollection = database.collection("notifications");
 
     /*::::::::::::::::::::::::::::::::::::::::: 
     access blogs collection including pagination
@@ -320,8 +321,10 @@ async function run() {
     Load User Help Message
     :::::::::::::::::::::::::::::::::::::::*/
     app.get("/userHelp", async (req, res) => {
-      const usersHelp = await userHelpCollection.find({}).toArray();
+      const sort = { _id: -1 };
+      const usersHelp = await userHelpCollection.find({}).sort(sort).toArray();
       res.send(usersHelp);
+      console.log("userhelp");
     });
 
     /* :::::::::::::::::::::::::::::::::::::
@@ -419,9 +422,15 @@ async function run() {
 
     /* Get All Products */
     app.get("/products", async (req, res) => {
-      const cursor = productsCollection.find({});
+      let query = {};
+      const email = req.query.email;
+      if (email) {
+        query = { email: email };
+      }
+      let cursor = productsCollection.find(query);
       const page = req.query.page;
       const size = parseInt(req.query.size);
+
       let products;
       const count = await cursor.count();
       if (page) {
@@ -448,6 +457,7 @@ async function run() {
     app.post("/products", async (req, res) => {
       const productTitle = req.body.productTitle;
       const productPrice = req.body.productPrice;
+      const email = req.body.email;
       const description = req.body.description;
       const image = req.files.image;
       const imageData = image.data;
@@ -458,6 +468,7 @@ async function run() {
         productPrice,
         description,
         imageBuffer,
+        email,
       };
       const result = await productsCollection.insertOne(product);
       res.json(result);
@@ -565,8 +576,7 @@ async function run() {
       res.send(bookingProduct);
     });
 
-
-    //blog delete 
+    //blog delete
 
     app.delete("/blogs/:id", async (req, res) => {
       const id = req.params.id;
@@ -577,26 +587,33 @@ async function run() {
       res.json(result);
     });
 
-
-
-
-    /* ::::::::::::::::::::::::::::
-    Unique visitors post
-    ::::::::::::::::::::::::::::::::::::*/
-    app.post("/uniqueVisitors", async (req, res) => {
+    app.put("/users/followings/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
       const data = req.body;
-      
-      const visitors = await uniqueVisitorsCollection.insertOne(data);
-      console.log(visitors);
-      res.json(visitors);
+      console.log(data);
+      const followings = {
+        followingsCount: data.followingsCount,
+        followings: data.followings,
+      };
+      const updateDoc = { $set: followings };
+      console.log(updateDoc);
+      const updatedPost = await usersCollection.updateOne(filter, updateDoc);
+      res.json(updatedPost);
     });
 
-    /* :::::::::::::::::::::::::::::::::::::
-    Load visitors
-    :::::::::::::::::::::::::::::::::::::::*/
-    app.get("/uniqueVisitors", async (req, res) => {
-      const visitors = await uniqueVisitorsCollection.find({}).toArray();
-      res.send(visitors);
+    /* ::::post notification ::: */
+    app.post("/notifications", async (req, res) => {
+      const data = req.body;
+      const userHelpNotification = await notificationCollection.insertOne(data);
+      console.log("inserted");
+      res.json(userHelpNotification);
+    });
+
+    /* ::::get notification ::: */
+    app.get("/notifications", async (req, res) => {
+      const notifications = await notificationCollection.find({}).toArray();
+      res.send(notifications);
     });
 
     //Please dont uncomment the code below.
@@ -606,7 +623,7 @@ async function run() {
       $set: {
         payment: [],
       },
-    }; 
+    };
     const updateUserResult = await usersCollection.updateMany(
       updateUserQuery,
       updateUser,
