@@ -64,6 +64,7 @@ async function run() {
 
     const notificationCollection = database.collection("notifications");
     const uniqueVisitorsCollection = database.collection("uniqueVisitors");
+    const userVisitorsCollection = database.collection("userVisitors");
 
     /*::::::::::::::::::::::::::::::::::::::::: 
     access blogs collection including pagination
@@ -650,19 +651,36 @@ async function run() {
       res.json(visitor);
     });
 
-    //Please dont uncomment the code below.
-    /*     const updateUserQuery = {};
-    const updateUserOptions = { upsert: true };
-    const updateUser = {
-      $set: {
-        payment: [],
-      },
-    };
-    const updateUserResult = await usersCollection.updateMany(
-      updateUserQuery,
-      updateUser,
-      updateUserOptions
-    ); */
+    /* ::::::::::::::::::::::::::::
+    User visitors post
+    ::::::::::::::::::::::::::::::::::::*/
+    app.post("/userVisitors", async (req, res) => {
+      const data = req.body;
+      const visitors = await userVisitorsCollection.insertOne(data);
+      console.log(visitors);
+      res.json(visitors);
+    });
+
+    /* :::::::::::::::::::::::::::::::::::::
+    User Load visitors
+    :::::::::::::::::::::::::::::::::::::::*/
+    app.get("/userVisitors", async (req, res) => {
+      const visitors = await userVisitorsCollection.find({}).toArray();
+      res.send(visitors);
+    });
+    
+    app.put("/userVisitors/:date", async (req, res) => {
+      const date = req.params.date;
+      const filter = {name : date}
+      const data = req.body;
+      const option = {upsert : true}
+      const updateDoc = {$set: data}
+      const visitor = await userVisitorsCollection.updateOne(filter, updateDoc, option);
+      console.log(visitor);
+      res.json(visitor);
+    });
+
+
   } finally {
   }
 }
