@@ -203,7 +203,7 @@ async function run() {
           const filter = { email: user.email };
           const updateDoc = { $set: { role: "admin" } };
           const result = await usersCollection.updateOne(filter, updateDoc);
-          res.json(result);
+          res.send(result);
         }
       } else {
         res.status(403).json({ message: " You are not Admin" });
@@ -349,7 +349,7 @@ async function run() {
       const id = req.params;
       const query = { _id: ObjectId(id) };
       const result = await blogsCollection.findOne(query);
-      res.json(result);
+      res.send(result);
     });
 
     //sending likes array of object
@@ -444,7 +444,7 @@ async function run() {
         products = await cursor.toArray();
       }
 
-      res.json({ count, products });
+      res.sebd({ count, products });
     });
 
     /* Get A single Products */
@@ -452,7 +452,7 @@ async function run() {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const product = await productsCollection.findOne(query);
-      res.json(product);
+      res.send(product);
     });
 
     // /* Post a Product */
@@ -481,7 +481,7 @@ async function run() {
       const email = req.params.email;
       const query = { email: email };
       const user = await usersCollection.findOne(query);
-      res.json(user);
+      res.send(user);
     });
 
     /* :::::::::::::::::::::::::::::::::::::
@@ -540,7 +540,7 @@ async function run() {
 
     app.get("/revenue", async (req, res) => {
       const result = await revenueCollection.find({}).toArray();
-      res.json(result);
+      res.send(result);
     });
 
     app.put("/cost", async (req, res) => {
