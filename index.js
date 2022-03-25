@@ -680,7 +680,7 @@ async function run() {
       res.json(visitor);
     });
 
-// fixing bugs
+// fixing bugs now
 
   } finally {
   }
