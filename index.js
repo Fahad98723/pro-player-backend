@@ -206,7 +206,7 @@ async function run() {
           res.send(result);
         }
       } else {
-        res.status(403).json({ message: " You are not Admin" });
+        res.status(403).send({ message: " You are not Admin" });
       }
     });
 
@@ -444,7 +444,7 @@ async function run() {
         products = await cursor.toArray();
       }
 
-      res.sebd({ count, products });
+      res.send({ count, products });
     });
 
     /* Get A single Products */
@@ -511,7 +511,7 @@ async function run() {
 
     app.get("/views", async (req, res) => {
       const result = await viewsCollection.find({}).toArray();
-      res.json(result);
+      res.send(result);
     });
 
     app.delete("/views/:id", async (req, res) => {
@@ -557,7 +557,7 @@ async function run() {
 
     app.get("/cost", async (req, res) => {
       const result = await costCollection.find({}).toArray();
-      res.json(result);
+      res.send(result);
     });
 
     /* :::::::::::::::::::::::::::::::::::::
